@@ -3,13 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PixelKonverter - Einfach & Schnell</title>
-    <!-- Tailwind CSS direkt laden (für einfaches Deployment ohne Build-Step) -->
+    <!-- WICHTIG FÜR SEO -->
+    <meta name="description" content="Kostenloser Online Bildkonverter. Wandle JPG in PNG oder WEBP um. Ändere die Bildgröße direkt im Browser ohne Upload. Sicher & Schnell.">
+    <title>PixelKonverter - Bilder sicher im Browser konvertieren</title>
+    
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <!-- HIER KOMMT SPÄTER DER GOOGLE ADSENSE CODE HIN -->
+    <!-- <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-DEINE-ID" crossorigin="anonymous"></script> -->
+
     <style>
-        /* Custom Styles für Range Input */
         input[type=range]::-webkit-slider-thumb {
             -webkit-appearance: none;
             height: 16px;
@@ -25,63 +31,67 @@
             background: #e2e8f0;
             border-radius: 4px;
         }
-        /* Werbe-Platzhalter Muster */
         .ad-pattern {
-            background-color: #f1f5f9;
-            background-image: radial-gradient(#cbd5e1 1px, transparent 1px);
-            background-size: 10px 10px;
+            background-color: #f8fafc;
+            background-image: repeating-linear-gradient(45deg, #f1f5f9 25%, transparent 25%, transparent 75%, #f1f5f9 75%, #f1f5f9), repeating-linear-gradient(45deg, #f1f5f9 25%, #f8fafc 25%, #f8fafc 75%, #f1f5f9 75%, #f1f5f9);
+            background-position: 0 0, 10px 10px;
+            background-size: 20px 20px;
         }
     </style>
 </head>
-<body class="min-h-screen bg-slate-50 text-slate-800 font-sans selection:bg-blue-200">
+<body class="min-h-screen bg-slate-50 text-slate-800 font-sans selection:bg-blue-200 flex flex-col">
 
     <!-- Navbar -->
-    <nav class="bg-white border-b border-slate-200 sticky top-0 z-10">
+    <nav class="bg-white border-b border-slate-200 sticky top-0 z-20">
         <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
             <div class="flex items-center gap-2 text-blue-600">
                 <i data-lucide="refresh-cw" class="h-6 w-6"></i>
-                <span class="font-bold text-xl tracking-tight">PixelKonverter JS</span>
+                <span class="font-bold text-xl tracking-tight">PixelKonverter</span>
             </div>
             
             <div class="flex items-center gap-4">
-                <div class="text-sm text-slate-500 hidden md:block">
-                    Kein Upload • 100% Browser-basiert
+                <!-- Trust Indikator in der Navbar -->
+                <div class="hidden md:flex items-center gap-1.5 text-xs font-medium text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-100">
+                    <i data-lucide="shield-check" class="h-3 w-3"></i>
+                    <span>Lokale Verarbeitung</span>
                 </div>
-                <!-- MONETARISIERUNG: Spenden Button -->
-                <a href="#" onclick="alert('Hier Link zu PayPal oder BuyMeACoffee einfügen')" class="flex items-center gap-2 bg-yellow-100 hover:bg-yellow-200 text-yellow-800 px-3 py-1.5 rounded-full text-xs font-bold transition-colors border border-yellow-200">
+                <a href="#" onclick="alert('Hier Link zu PayPal/Ko-fi')" class="flex items-center gap-2 bg-yellow-100 hover:bg-yellow-200 text-yellow-800 px-3 py-1.5 rounded-full text-xs font-bold transition-colors border border-yellow-200">
                     <i data-lucide="coffee" class="h-3 w-3"></i>
-                    <span>Kaffee spendieren</span>
+                    <span class="hidden sm:inline">Spendieren</span>
                 </a>
             </div>
         </div>
     </nav>
 
-    <main class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+    <main class="flex-grow max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 w-full">
         
-        <!-- MONETARISIERUNG: Werbebanner Platzhalter (Leaderboard 728x90) -->
-        <!-- In der Realität würdest du hier den <script> Tag von AdSense einfügen -->
-        <div class="w-full h-24 mb-8 rounded-xl border-2 border-dashed border-slate-300 ad-pattern flex flex-col items-center justify-center text-slate-400">
-            <span class="text-xs font-bold uppercase tracking-widest mb-1">Werbung / Ad Space</span>
-            <span class="text-[10px]">Hier könnte ein Google AdSense Banner stehen</span>
+        <!-- ADSENSE PLATZHALTER (Leaderboard) -->
+        <div class="w-full h-24 mb-8 rounded-xl border border-slate-200 ad-pattern flex flex-col items-center justify-center text-slate-400 overflow-hidden relative">
+            <span class="text-[10px] font-bold uppercase tracking-widest bg-white px-2 py-1 rounded shadow-sm border border-slate-100">Werbung</span>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- Haupt-Tool Bereich -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-16">
             
             <!-- Linke Spalte: Upload & Vorschau -->
             <div class="lg:col-span-2 space-y-6">
                 
-                <!-- Upload Zone (Sichtbar wenn kein Bild) -->
-                <div id="uploadZone" class="border-4 border-dashed border-slate-300 bg-white hover:border-blue-400 hover:bg-slate-50 rounded-3xl h-96 flex flex-col items-center justify-center transition-all cursor-pointer">
-                    <div class="bg-blue-100 p-6 rounded-full mb-4">
+                <!-- Upload Zone -->
+                <div id="uploadZone" class="border-4 border-dashed border-slate-300 bg-white hover:border-blue-400 hover:bg-slate-50 rounded-3xl h-96 flex flex-col items-center justify-center transition-all cursor-pointer group">
+                    <div class="bg-blue-50 group-hover:bg-blue-100 p-6 rounded-full mb-4 transition-colors">
                         <i data-lucide="upload" class="h-10 w-10 text-blue-600"></i>
                     </div>
                     <h3 class="text-xl font-semibold text-slate-700">Bild hier ablegen</h3>
                     <p class="text-slate-500 mt-2">oder klicken zum Auswählen</p>
-                    <p class="text-xs text-slate-400 mt-4">JPG, PNG, WEBP unterstützt</p>
+                    <div class="mt-6 flex gap-3 text-xs text-slate-400">
+                        <span class="bg-slate-100 px-2 py-1 rounded">JPG</span>
+                        <span class="bg-slate-100 px-2 py-1 rounded">PNG</span>
+                        <span class="bg-slate-100 px-2 py-1 rounded">WEBP</span>
+                    </div>
                     <input id="fileInput" type="file" accept="image/*" class="hidden">
                 </div>
 
-                <!-- Vorschau (Versteckt bis Bild geladen) -->
+                <!-- Vorschau -->
                 <div id="previewContainer" class="hidden bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden relative group">
                     <div class="absolute top-4 right-4 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
                         <button id="resetBtn" class="bg-white/90 backdrop-blur text-red-500 p-2 rounded-xl shadow-lg hover:bg-red-50 transition-colors border border-red-100" title="Bild entfernen">
@@ -104,19 +114,16 @@
             <div class="lg:col-span-1">
                 <div class="bg-white rounded-3xl shadow-lg border border-slate-100 p-6 sticky top-24">
                     <div class="flex items-center gap-2 mb-6 pb-4 border-b border-slate-100">
-                        <i data-lucide="settings" class="h-5 w-5 text-blue-600"></i>
+                        <i data-lucide="sliders" class="h-5 w-5 text-blue-600"></i>
                         <h2 class="text-lg font-bold text-slate-800">Einstellungen</h2>
                     </div>
 
-                    <!-- Platzhalter Nachricht -->
                     <div id="settingsPlaceholder" class="text-center py-12 text-slate-400">
                         <i data-lucide="image" class="h-12 w-12 mx-auto mb-3 opacity-20"></i>
                         <p>Bitte lade zuerst ein Bild hoch.</p>
                     </div>
 
-                    <!-- Echte Controls (Versteckt) -->
                     <div id="settingsControls" class="hidden space-y-8">
-                        
                         <!-- Größe -->
                         <div class="space-y-4">
                             <div class="flex justify-between items-center mb-2">
@@ -165,18 +172,89 @@
                         <!-- Download Button -->
                         <button id="downloadBtn" class="w-full py-4 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-bold shadow-lg hover:shadow-xl transform active:scale-95 transition-all flex items-center justify-center gap-2">
                             <i data-lucide="download" class="h-5 w-5"></i>
-                            Bild herunterladen
+                            Bild speichern
                         </button>
-                        
-                        <!-- MONETARISIERUNG: Affiliate/Support Text -->
-                        <div class="text-center">
-                             <p class="text-[10px] text-slate-400">Gefällt dir das Tool? <a href="#" class="underline hover:text-blue-500">Kauf mir einen Kaffee</a> oder schau dir <a href="#" class="underline hover:text-blue-500">unsere Partner</a> an.</p>
-                        </div>
                     </div>
                 </div>
             </div>
         </div>
+
+        <!-- SEO & TRUST SECTION (Wichtig für Google und Nutzervertrauen) -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-12 border-t border-slate-200 pt-16">
+            <div class="space-y-6">
+                <h2 class="text-2xl font-bold text-slate-800">Warum PixelKonverter?</h2>
+                <div class="flex gap-4">
+                    <div class="bg-blue-50 p-3 rounded-lg h-fit">
+                        <i data-lucide="shield" class="h-6 w-6 text-blue-600"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-slate-700">100% Datenschutz</h3>
+                        <p class="text-slate-600 text-sm mt-1 leading-relaxed">
+                            Deine Bilder verlassen niemals deinen Computer. Im Gegensatz zu anderen Servern findet die Konvertierung vollständig in deinem Browser (Client-Side) statt. Wir sehen deine Bilder nicht.
+                        </p>
+                    </div>
+                </div>
+                <div class="flex gap-4">
+                    <div class="bg-blue-50 p-3 rounded-lg h-fit">
+                        <i data-lucide="zap" class="h-6 w-6 text-blue-600"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-slate-700">Blitzschnell</h3>
+                        <p class="text-slate-600 text-sm mt-1 leading-relaxed">
+                            Da kein Upload nötig ist, gibt es keine Wartezeiten. Selbst große Bilder werden in Sekundenbruchteilen verarbeitet.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-100">
+                <h3 class="text-lg font-bold text-slate-800 mb-4">Häufige Fragen</h3>
+                <div class="space-y-4">
+                    <details class="group">
+                        <summary class="flex justify-between items-center font-medium cursor-pointer list-none text-slate-700">
+                            <span>Welche Formate werden unterstützt?</span>
+                            <span class="transition group-open:rotate-180">
+                                <i data-lucide="chevron-down" class="h-4 w-4"></i>
+                            </span>
+                        </summary>
+                        <p class="text-slate-600 text-sm mt-2 group-open:animate-fadeIn">
+                            Du kannst aktuell JPG, PNG und WEBP Bilder hochladen und sie beliebig in diese drei Formate konvertieren.
+                        </p>
+                    </details>
+                    <hr class="border-slate-100">
+                    <details class="group">
+                        <summary class="flex justify-between items-center font-medium cursor-pointer list-none text-slate-700">
+                            <span>Ist der Service kostenlos?</span>
+                            <span class="transition group-open:rotate-180">
+                                <i data-lucide="chevron-down" class="h-4 w-4"></i>
+                            </span>
+                        </summary>
+                        <p class="text-slate-600 text-sm mt-2 group-open:animate-fadeIn">
+                            Ja, PixelKonverter ist zu 100% kostenlos und finanziert sich durch dezente Werbung und Spenden.
+                        </p>
+                    </details>
+                </div>
+            </div>
+        </div>
+
     </main>
+
+    <!-- Footer mit Rechtstexten (Pflicht für AdSense) -->
+    <footer class="bg-slate-50 border-t border-slate-200 py-8 mt-10">
+        <div class="max-w-6xl mx-auto px-4 flex flex-col md:flex-row justify-between items-center text-xs text-slate-400">
+            <div class="mb-4 md:mb-0">
+                &copy; 2024 PixelKonverter. All rights reserved.
+            </div>
+            <div class="flex gap-6">
+                <a href="/impressum.html" class="hover:text-slate-600 hover:underline">Impressum</a>
+                <a href="/datenschutz.html" class="hover:text-slate-600 hover:underline">Datenschutz</a>
+                <!-- Optional: GitHub Link für Trust -->
+                <a href="https://github.com/dein-username/repo" target="_blank" class="flex items-center gap-1 hover:text-slate-600">
+                    <i data-lucide="github" class="h-3 w-3"></i> Open Source
+                </a>
+            </div>
+        </div>
+    </footer>
 
     <!-- Hidden Canvas -->
     <canvas id="canvas" class="hidden"></canvas>
@@ -187,7 +265,7 @@
 
         // State
         let currentFile = null;
-        let originalImage = null; // Das Image Objekt
+        let originalImage = null;
         let originalDims = { width: 0, height: 0 };
         let maintainAspectRatio = true;
         let currentFormat = 'image/jpeg';
@@ -214,7 +292,7 @@
         const canvas = document.getElementById('canvas');
         const ctx = canvas.getContext('2d');
 
-        // Drag & Drop
+        // Drag & Drop Logic
         uploadZone.addEventListener('click', () => fileInput.click());
         uploadZone.addEventListener('dragover', (e) => {
             e.preventDefault();
@@ -319,15 +397,11 @@
         // Format Logic
         document.querySelectorAll('.format-btn').forEach(btn => {
             btn.addEventListener('click', () => {
-                // Reset styles
                 document.querySelectorAll('.format-btn').forEach(b => {
                     b.className = 'format-btn py-2 px-1 text-sm font-medium rounded-xl border bg-white text-slate-600 border-slate-200 hover:bg-slate-50 transition-all';
                 });
-                // Set active style
                 btn.className = 'format-btn py-2 px-1 text-sm font-medium rounded-xl border bg-blue-600 text-white border-blue-600 shadow-md transform scale-105 transition-all';
-                
                 currentFormat = btn.dataset.format;
-                
                 if (currentFormat === 'image/png') {
                     qualityControl.classList.add('opacity-50', 'pointer-events-none');
                 } else {
@@ -351,7 +425,6 @@
             canvas.width = w;
             canvas.height = h;
 
-            // High Quality Scaling
             ctx.imageSmoothingEnabled = true;
             ctx.imageSmoothingQuality = 'high';
             ctx.drawImage(originalImage, 0, 0, w, h);
