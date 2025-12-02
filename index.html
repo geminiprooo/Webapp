@@ -1,383 +1,353 @@
-import { Component, signal, ViewChild, ElementRef, computed, effect } from '@angular/core';
-import { CommonModule } from '@angular/common';
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PixelKonverter - Einfach & Schnell</title>
+    <!-- Tailwind CSS direkt laden (für einfaches Deployment ohne Build-Step) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        /* Custom Styles für Range Input */
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 16px;
+            width: 16px;
+            border-radius: 50%;
+            background: #2563eb;
+            margin-top: -4px;
+            cursor: pointer;
+        }
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 8px;
+            background: #e2e8f0;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-slate-50 text-slate-800 font-sans selection:bg-blue-200">
 
-@Component({
-  selector: 'app-root',
-  imports: [CommonModule],
-  template: `
-    <div class="min-h-screen bg-slate-50 text-slate-800 font-sans selection:bg-blue-200">
-      <!-- Navbar -->
-      <nav class="bg-white border-b border-slate-200 sticky top-0 z-10">
+    <!-- Navbar -->
+    <nav class="bg-white border-b border-slate-200 sticky top-0 z-10">
         <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <div class="flex items-center gap-2 text-blue-600">
-            <!-- RefreshCw Icon -->
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>
-            <span class="font-bold text-xl tracking-tight">PixelKonverter NG</span>
-          </div>
-          <div class="text-sm text-slate-500 hidden sm:block">
-            Angular • Signals • Client-Side
-          </div>
+            <div class="flex items-center gap-2 text-blue-600">
+                <i data-lucide="refresh-cw" class="h-6 w-6"></i>
+                <span class="font-bold text-xl tracking-tight">PixelKonverter JS</span>
+            </div>
+            <div class="text-sm text-slate-500 hidden sm:block">
+                Kein Upload • 100% Browser-basiert
+            </div>
         </div>
-      </nav>
+    </nav>
 
-      <main class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-        
+    <main class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          
-          <!-- Left Column: Preview & Upload -->
-          <div class="lg:col-span-2 space-y-6">
             
-            <!-- Upload Zone -->
-            @if (!file()) {
-              <div 
-                class="border-4 border-dashed rounded-3xl h-96 flex flex-col items-center justify-center transition-all cursor-pointer"
-                [class.border-blue-500]="isDragging()"
-                [class.bg-blue-50]="isDragging()"
-                [class.border-slate-300]="!isDragging()"
-                [class.bg-white]="!isDragging()"
-                (dragover)="onDragOver($event)"
-                (dragleave)="onDragLeave($event)"
-                (drop)="onDrop($event)"
-                (click)="fileInput.click()"
-              >
-                <div class="bg-blue-100 p-6 rounded-full mb-4">
-                  <!-- Upload Icon -->
-                  <svg class="h-10 w-10 text-blue-600" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-                </div>
-                <h3 class="text-xl font-semibold text-slate-700">Bild hier ablegen</h3>
-                <p class="text-slate-500 mt-2">oder klicken zum Auswählen</p>
-                <p class="text-xs text-slate-400 mt-4">JPG, PNG, WEBP unterstützt</p>
-                <input 
-                  #fileInput
-                  type="file" 
-                  accept="image/*" 
-                  class="hidden" 
-                  (change)="onFileSelected($event)"
-                />
-              </div>
-            }
-
-            <!-- Image Preview -->
-            @if (file()) {
-              <div class="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden relative group">
-                 <div class="absolute top-4 right-4 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button 
-                      (click)="resetAll()"
-                      class="bg-white/90 backdrop-blur text-red-500 p-2 rounded-xl shadow-lg hover:bg-red-50 transition-colors border border-red-100"
-                      title="Bild entfernen"
-                    >
-                      <!-- Trash Icon -->
-                      <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
-                    </button>
-                 </div>
-                 
-                 <div class="p-1 bg-slate-100 border-b border-slate-200 flex justify-between px-4 py-2 text-xs text-slate-500 font-medium uppercase tracking-wider">
-                    <span>Original: {{ originalDimensions().width }} x {{ originalDimensions().height }} px</span>
-                    <span>{{ formatFileSize(file()?.size || 0) }}</span>
-                 </div>
-
-                 <div class="flex items-center justify-center p-8 bg-[url('https://www.transparenttextures.com/patterns/subtle-grey.png')] min-h-[400px]">
-                    <img 
-                      [src]="previewUrl()" 
-                      alt="Vorschau" 
-                      class="max-w-full max-h-[500px] object-contain shadow-2xl rounded-lg"
-                    />
-                 </div>
-              </div>
-            }
-          </div>
-
-          <!-- Right Column: Controls -->
-          <div class="lg:col-span-1">
-             <div class="bg-white rounded-3xl shadow-lg border border-slate-100 p-6 sticky top-24">
-                <div class="flex items-center gap-2 mb-6 pb-4 border-b border-slate-100">
-                  <!-- Settings Icon -->
-                  <svg class="h-5 w-5 text-blue-600" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.09a2 2 0 0 1-1-1.74v-.47a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.39a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
-                  <h2 class="text-lg font-bold text-slate-800">Einstellungen</h2>
+            <!-- Linke Spalte: Upload & Vorschau -->
+            <div class="lg:col-span-2 space-y-6">
+                
+                <!-- Upload Zone (Sichtbar wenn kein Bild) -->
+                <div id="uploadZone" class="border-4 border-dashed border-slate-300 bg-white hover:border-blue-400 hover:bg-slate-50 rounded-3xl h-96 flex flex-col items-center justify-center transition-all cursor-pointer">
+                    <div class="bg-blue-100 p-6 rounded-full mb-4">
+                        <i data-lucide="upload" class="h-10 w-10 text-blue-600"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold text-slate-700">Bild hier ablegen</h3>
+                    <p class="text-slate-500 mt-2">oder klicken zum Auswählen</p>
+                    <p class="text-xs text-slate-400 mt-4">JPG, PNG, WEBP unterstützt</p>
+                    <input id="fileInput" type="file" accept="image/*" class="hidden">
                 </div>
 
-                @if (!file()) {
-                  <div class="text-center py-12 text-slate-400">
-                    <!-- ImageIcon -->
-                    <svg class="h-12 w-12 mx-auto mb-3 opacity-20" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
-                    <p>Bitte lade zuerst ein Bild hoch.</p>
-                  </div>
-                } @else {
-                  <div class="space-y-8">
+                <!-- Vorschau (Versteckt bis Bild geladen) -->
+                <div id="previewContainer" class="hidden bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden relative group">
+                    <div class="absolute top-4 right-4 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button id="resetBtn" class="bg-white/90 backdrop-blur text-red-500 p-2 rounded-xl shadow-lg hover:bg-red-50 transition-colors border border-red-100" title="Bild entfernen">
+                            <i data-lucide="trash-2" class="h-5 w-5"></i>
+                        </button>
+                    </div>
                     
-                    <!-- Size Controls -->
-                    <div class="space-y-4">
-                      <div class="flex justify-between items-center mb-2">
-                         <label class="text-sm font-bold text-slate-700">Größe ändern</label>
-                         <button (click)="resetDimensions()" class="text-xs text-blue-600 hover:underline">Originalgröße</button>
-                      </div>
-                      
-                      <div class="flex items-center gap-3">
-                        <div class="flex-1">
-                          <label class="text-xs text-slate-500 mb-1 block">Breite (px)</label>
-                          <input 
-                            type="number" 
-                            [value]="width()"
-                            (input)="handleWidthChange($event)"
-                            class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                          />
-                        </div>
-                        <div class="pt-5">
-                          <button 
-                            (click)="toggleAspectRatio()"
-                            [class.text-blue-600]="maintainAspectRatio()"
-                            [class.bg-blue-50]="maintainAspectRatio()"
-                            [class.text-slate-400]="!maintainAspectRatio()"
-                            class="p-2 rounded-lg transition-colors hover:text-slate-600"
-                            title="Seitenverhältnis"
-                          >
-                            @if (maintainAspectRatio()) {
-                                <!-- Lock -->
-                                <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-                            } @else {
-                                <!-- Unlock -->
-                                <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg>
-                            }
-                          </button>
-                        </div>
-                        <div class="flex-1">
-                          <label class="text-xs text-slate-500 mb-1 block">Höhe (px)</label>
-                          <input 
-                            type="number" 
-                            [value]="height()"
-                            (input)="handleHeightChange($event)"
-                            class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                          />
-                        </div>
-                      </div>
+                    <div class="p-1 bg-slate-100 border-b border-slate-200 flex justify-between px-4 py-2 text-xs text-slate-500 font-medium uppercase tracking-wider">
+                        <span id="originalInfo">Original: - x - px</span>
+                        <span id="fileSizeInfo">0 MB</span>
                     </div>
 
-                    <!-- Format Controls -->
-                    <div class="space-y-4">
-                      <label class="text-sm font-bold text-slate-700 flex items-center gap-2">
-                        <!-- FileOutput Icon -->
-                        <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 22h14a2 2 0 0 0 2-2V7.5L14.5 2H6a2 2 0 0 0-2 2v4"/><polyline points="14 2 14 8 20 8"/><path d="M2 15h10"/><path d="m9 18 3-3-3-3"/></svg>
-                        Format & Qualität
-                      </label>
-                      
-                      <div class="grid grid-cols-3 gap-2">
-                        @for (fmt of formats; track fmt) {
-                          <button
-                            (click)="setFormat(fmt)"
-                            class="py-2 px-1 text-sm font-medium rounded-xl border transition-all"
-                            [class.bg-blue-600]="format() === fmt"
-                            [class.text-white]="format() === fmt"
-                            [class.border-blue-600]="format() === fmt"
-                            [class.shadow-md]="format() === fmt"
-                            [class.scale-105]="format() === fmt"
-                            [class.bg-white]="format() !== fmt"
-                            [class.text-slate-600]="format() !== fmt"
-                            [class.border-slate-200]="format() !== fmt"
-                          >
-                            {{ getFormatLabel(fmt) }}
-                          </button>
-                        }
-                      </div>
-                      
+                    <div class="flex items-center justify-center p-8 bg-[url('https://www.transparenttextures.com/patterns/subtle-grey.png')] min-h-[400px]">
+                        <img id="previewImage" src="" alt="Vorschau" class="max-w-full max-h-[500px] object-contain shadow-2xl rounded-lg">
+                    </div>
+                </div>
+            </div>
 
-                      @if (format() !== 'image/png') {
-                        <div class="bg-slate-50 rounded-xl p-4 border border-slate-100">
-                          <div class="flex justify-between text-xs mb-2">
-                            <span class="text-slate-500">Qualität</span>
-                            <span class="font-bold text-slate-700">{{ Math.round(quality() * 100) }}%</span>
-                          </div>
-                          <input 
-                            type="range" 
-                            min="0.1" 
-                            max="1" 
-                            step="0.05" 
-                            [value]="quality()"
-                            (input)="handleQualityChange($event)"
-                            class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
-                          />
-                        </div>
-                      }
+            <!-- Rechte Spalte: Einstellungen -->
+            <div class="lg:col-span-1">
+                <div class="bg-white rounded-3xl shadow-lg border border-slate-100 p-6 sticky top-24">
+                    <div class="flex items-center gap-2 mb-6 pb-4 border-b border-slate-100">
+                        <i data-lucide="settings" class="h-5 w-5 text-blue-600"></i>
+                        <h2 class="text-lg font-bold text-slate-800">Einstellungen</h2>
                     </div>
 
-                    <!-- Action Button -->
-                    <button 
-                      (click)="handleDownload()"
-                      class="w-full py-4 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-bold shadow-lg hover:shadow-xl transform active:scale-95 transition-all flex items-center justify-center gap-2"
-                    >
-                      <!-- Download Icon -->
-                      <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                      Bild herunterladen
-                    </button>
-                  </div>
-                }
-             </div>
-          </div>
+                    <!-- Platzhalter Nachricht -->
+                    <div id="settingsPlaceholder" class="text-center py-12 text-slate-400">
+                        <i data-lucide="image" class="h-12 w-12 mx-auto mb-3 opacity-20"></i>
+                        <p>Bitte lade zuerst ein Bild hoch.</p>
+                    </div>
+
+                    <!-- Echte Controls (Versteckt) -->
+                    <div id="settingsControls" class="hidden space-y-8">
+                        
+                        <!-- Größe -->
+                        <div class="space-y-4">
+                            <div class="flex justify-between items-center mb-2">
+                                <label class="text-sm font-bold text-slate-700">Größe ändern</label>
+                                <button id="resetDimensionsBtn" class="text-xs text-blue-600 hover:underline">Originalgröße</button>
+                            </div>
+                            
+                            <div class="flex items-center gap-3">
+                                <div class="flex-1">
+                                    <label class="text-xs text-slate-500 mb-1 block">Breite (px)</label>
+                                    <input type="number" id="widthInput" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                </div>
+                                <div class="pt-5">
+                                    <button id="lockBtn" class="p-2 rounded-lg transition-colors text-blue-600 bg-blue-50" title="Seitenverhältnis beibehalten">
+                                        <i data-lucide="lock" class="h-4 w-4"></i>
+                                    </button>
+                                </div>
+                                <div class="flex-1">
+                                    <label class="text-xs text-slate-500 mb-1 block">Höhe (px)</label>
+                                    <input type="number" id="heightInput" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Format -->
+                        <div class="space-y-4">
+                            <label class="text-sm font-bold text-slate-700 flex items-center gap-2">
+                                <i data-lucide="file-output" class="h-4 w-4"></i> Format & Qualität
+                            </label>
+                            
+                            <div class="grid grid-cols-3 gap-2" id="formatButtons">
+                                <button data-format="image/jpeg" class="format-btn py-2 px-1 text-sm font-medium rounded-xl border bg-blue-600 text-white border-blue-600 shadow-md transform scale-105 transition-all">JPG</button>
+                                <button data-format="image/png" class="format-btn py-2 px-1 text-sm font-medium rounded-xl border bg-white text-slate-600 border-slate-200 hover:bg-slate-50 transition-all">PNG</button>
+                                <button data-format="image/webp" class="format-btn py-2 px-1 text-sm font-medium rounded-xl border bg-white text-slate-600 border-slate-200 hover:bg-slate-50 transition-all">WEBP</button>
+                            </div>
+
+                            <div id="qualityControl" class="bg-slate-50 rounded-xl p-4 border border-slate-100">
+                                <div class="flex justify-between text-xs mb-2">
+                                    <span class="text-slate-500">Qualität</span>
+                                    <span id="qualityValue" class="font-bold text-slate-700">90%</span>
+                                </div>
+                                <input type="range" id="qualityInput" min="0.1" max="1" step="0.05" value="0.9" class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600">
+                            </div>
+                        </div>
+
+                        <!-- Download Button -->
+                        <button id="downloadBtn" class="w-full py-4 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-bold shadow-lg hover:shadow-xl transform active:scale-95 transition-all flex items-center justify-center gap-2">
+                            <i data-lucide="download" class="h-5 w-5"></i>
+                            Bild herunterladen
+                        </button>
+                    </div>
+                </div>
+            </div>
         </div>
-      </main>
-      
-      <!-- Hidden Canvas -->
-      <canvas #canvasElement class="hidden"></canvas>
-    </div>
-  `,
-  styles: []
-})
-export class App {
-  // State Signals
-  file = signal<File | null>(null);
-  previewUrl = signal<string | null>(null);
-  originalDimensions = signal({ width: 0, height: 0 });
-  width = signal(0);
-  height = signal(0);
-  maintainAspectRatio = signal(true);
-  format = signal('image/jpeg');
-  quality = signal(0.9);
-  isDragging = signal(false);
+    </main>
 
-  // Constants
-  formats = ['image/jpeg', 'image/png', 'image/webp'];
-  Math = Math; // Make Math available in template
+    <!-- Hidden Canvas -->
+    <canvas id="canvas" class="hidden"></canvas>
 
-  // View Children
-  @ViewChild('canvasElement') canvasRef!: ElementRef<HTMLCanvasElement>;
-  
-  // Image Object reference (not signal as it's not rendered directly)
-  private imgObj: HTMLImageElement | null = null;
+    <script>
+        // Icons initialisieren
+        lucide.createIcons();
 
-  onDragOver(e: DragEvent) {
-    e.preventDefault();
-    this.isDragging.set(true);
-  }
+        // State
+        let currentFile = null;
+        let originalImage = null; // Das Image Objekt
+        let originalDims = { width: 0, height: 0 };
+        let maintainAspectRatio = true;
+        let currentFormat = 'image/jpeg';
+        let currentQuality = 0.9;
 
-  onDragLeave(e: DragEvent) {
-    e.preventDefault();
-    this.isDragging.set(false);
-  }
+        // Elements
+        const uploadZone = document.getElementById('uploadZone');
+        const fileInput = document.getElementById('fileInput');
+        const previewContainer = document.getElementById('previewContainer');
+        const previewImage = document.getElementById('previewImage');
+        const originalInfo = document.getElementById('originalInfo');
+        const fileSizeInfo = document.getElementById('fileSizeInfo');
+        const settingsPlaceholder = document.getElementById('settingsPlaceholder');
+        const settingsControls = document.getElementById('settingsControls');
+        const widthInput = document.getElementById('widthInput');
+        const heightInput = document.getElementById('heightInput');
+        const lockBtn = document.getElementById('lockBtn');
+        const qualityInput = document.getElementById('qualityInput');
+        const qualityValue = document.getElementById('qualityValue');
+        const qualityControl = document.getElementById('qualityControl');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const resetDimensionsBtn = document.getElementById('resetDimensionsBtn');
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
 
-  onDrop(e: DragEvent) {
-    e.preventDefault();
-    this.isDragging.set(false);
-    if (e.dataTransfer?.files.length) {
-      this.processFile(e.dataTransfer.files[0]);
-    }
-  }
+        // Drag & Drop
+        uploadZone.addEventListener('click', () => fileInput.click());
+        uploadZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadZone.classList.add('border-blue-500', 'bg-blue-50');
+        });
+        uploadZone.addEventListener('dragleave', (e) => {
+            e.preventDefault();
+            uploadZone.classList.remove('border-blue-500', 'bg-blue-50');
+        });
+        uploadZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadZone.classList.remove('border-blue-500', 'bg-blue-50');
+            if(e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
+        });
+        fileInput.addEventListener('change', (e) => {
+            if(e.target.files.length) handleFile(e.target.files[0]);
+        });
 
-  onFileSelected(e: Event) {
-    const input = e.target as HTMLInputElement;
-    if (input.files?.length) {
-      this.processFile(input.files[0]);
-    }
-  }
+        function handleFile(file) {
+            if (!file.type.startsWith('image/')) {
+                alert('Bitte wähle ein Bild aus!');
+                return;
+            }
+            currentFile = file;
+            
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = new Image();
+                img.onload = () => {
+                    originalImage = img;
+                    originalDims = { width: img.width, height: img.height };
+                    
+                    // UI Updates
+                    previewImage.src = img.src;
+                    widthInput.value = img.width;
+                    heightInput.value = img.height;
+                    originalInfo.textContent = `Original: ${img.width} x ${img.height} px`;
+                    fileSizeInfo.textContent = formatSize(file.size);
+                    
+                    showEditor();
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
 
-  processFile(file: File) {
-    if (!file.type.startsWith('image/')) {
-      alert('Bitte wähle eine gültige Bilddatei aus.');
-      return;
-    }
+        function showEditor() {
+            uploadZone.classList.add('hidden');
+            previewContainer.classList.remove('hidden');
+            settingsPlaceholder.classList.add('hidden');
+            settingsControls.classList.remove('hidden');
+        }
 
-    const url = URL.createObjectURL(file);
-    this.file.set(file);
-    this.previewUrl.set(url);
+        function resetAll() {
+            currentFile = null;
+            originalImage = null;
+            fileInput.value = '';
+            uploadZone.classList.remove('hidden');
+            previewContainer.classList.add('hidden');
+            settingsPlaceholder.classList.remove('hidden');
+            settingsControls.classList.add('hidden');
+        }
 
-    this.imgObj = new Image();
-    this.imgObj.src = url;
-    this.imgObj.onload = () => {
-      if (this.imgObj) {
-        this.originalDimensions.set({ width: this.imgObj.width, height: this.imgObj.height });
-        this.width.set(this.imgObj.width);
-        this.height.set(this.imgObj.height);
-      }
-    };
-  }
+        resetBtn.addEventListener('click', resetAll);
 
-  resetAll() {
-    this.file.set(null);
-    this.previewUrl.set(null);
-    this.imgObj = null;
-    this.width.set(0);
-    this.height.set(0);
-  }
+        // Dimensions Logic
+        widthInput.addEventListener('input', (e) => {
+            const val = parseInt(e.target.value) || 0;
+            if (maintainAspectRatio && originalDims.width > 0) {
+                const ratio = originalDims.height / originalDims.width;
+                heightInput.value = Math.round(val * ratio);
+            }
+        });
 
-  handleWidthChange(e: Event) {
-    const val = parseInt((e.target as HTMLInputElement).value) || 0;
-    this.width.set(val);
-    
-    if (this.maintainAspectRatio() && this.originalDimensions().width > 0) {
-      const ratio = this.originalDimensions().height / this.originalDimensions().width;
-      this.height.set(Math.round(val * ratio));
-    }
-  }
+        heightInput.addEventListener('input', (e) => {
+            const val = parseInt(e.target.value) || 0;
+            if (maintainAspectRatio && originalDims.height > 0) {
+                const ratio = originalDims.width / originalDims.height;
+                widthInput.value = Math.round(val * ratio);
+            }
+        });
 
-  handleHeightChange(e: Event) {
-    const val = parseInt((e.target as HTMLInputElement).value) || 0;
-    this.height.set(val);
+        lockBtn.addEventListener('click', () => {
+            maintainAspectRatio = !maintainAspectRatio;
+            if (maintainAspectRatio) {
+                lockBtn.innerHTML = '<i data-lucide="lock" class="h-4 w-4"></i>';
+                lockBtn.classList.add('text-blue-600', 'bg-blue-50');
+                lockBtn.classList.remove('text-slate-400');
+            } else {
+                lockBtn.innerHTML = '<i data-lucide="unlock" class="h-4 w-4"></i>';
+                lockBtn.classList.remove('text-blue-600', 'bg-blue-50');
+                lockBtn.classList.add('text-slate-400');
+            }
+            lucide.createIcons();
+        });
 
-    if (this.maintainAspectRatio() && this.originalDimensions().height > 0) {
-      const ratio = this.originalDimensions().width / this.originalDimensions().height;
-      this.width.set(Math.round(val * ratio));
-    }
-  }
+        resetDimensionsBtn.addEventListener('click', () => {
+            widthInput.value = originalDims.width;
+            heightInput.value = originalDims.height;
+        });
 
-  handleQualityChange(e: Event) {
-    this.quality.set(parseFloat((e.target as HTMLInputElement).value));
-  }
+        // Format Logic
+        document.querySelectorAll('.format-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                // Reset styles
+                document.querySelectorAll('.format-btn').forEach(b => {
+                    b.className = 'format-btn py-2 px-1 text-sm font-medium rounded-xl border bg-white text-slate-600 border-slate-200 hover:bg-slate-50 transition-all';
+                });
+                // Set active style
+                btn.className = 'format-btn py-2 px-1 text-sm font-medium rounded-xl border bg-blue-600 text-white border-blue-600 shadow-md transform scale-105 transition-all';
+                
+                currentFormat = btn.dataset.format;
+                
+                if (currentFormat === 'image/png') {
+                    qualityControl.classList.add('opacity-50', 'pointer-events-none');
+                } else {
+                    qualityControl.classList.remove('opacity-50', 'pointer-events-none');
+                }
+            });
+        });
 
-  resetDimensions() {
-    this.width.set(this.originalDimensions().width);
-    this.height.set(this.originalDimensions().height);
-  }
+        qualityInput.addEventListener('input', (e) => {
+            currentQuality = parseFloat(e.target.value);
+            qualityValue.textContent = Math.round(currentQuality * 100) + '%';
+        });
 
-  toggleAspectRatio() {
-    this.maintainAspectRatio.update(v => !v);
-  }
+        // Download Logic
+        downloadBtn.addEventListener('click', () => {
+            if (!originalImage) return;
 
-  setFormat(fmt: string) {
-    this.format.set(fmt);
-  }
+            const w = parseInt(widthInput.value);
+            const h = parseInt(heightInput.value);
 
-  getFormatLabel(fmt: string): string {
-    return fmt.split('/')[1].toUpperCase().replace('JPEG', 'JPG');
-  }
+            canvas.width = w;
+            canvas.height = h;
 
-  handleDownload() {
-    if (!this.imgObj || !this.canvasRef) return;
+            // High Quality Scaling
+            ctx.imageSmoothingEnabled = true;
+            ctx.imageSmoothingQuality = 'high';
+            ctx.drawImage(originalImage, 0, 0, w, h);
 
-    const canvas = this.canvasRef.nativeElement;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
+            const dataUrl = canvas.toDataURL(currentFormat, currentFormat === 'image/png' ? undefined : currentQuality);
+            
+            const link = document.createElement('a');
+            const ext = currentFormat.split('/')[1].replace('jpeg', 'jpg');
+            const name = currentFile.name.split('.')[0];
+            link.download = `konvertiert_${name}.${ext}`;
+            link.href = dataUrl;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        });
 
-    // Set dimensions
-    canvas.width = this.width();
-    canvas.height = this.height();
-
-    // High quality scaling
-    ctx.imageSmoothingEnabled = true;
-    ctx.imageSmoothingQuality = 'high';
-
-    // Draw
-    ctx.drawImage(this.imgObj, 0, 0, this.width(), this.height());
-
-    // Export
-    const fmt = this.format();
-    const q = fmt === 'image/png' ? undefined : this.quality();
-    const dataUrl = canvas.toDataURL(fmt, q);
-
-    // Download link
-    const link = document.createElement('a');
-    const originalName = this.file()?.name.split('.')[0] || 'image';
-    const ext = fmt.split('/')[1];
-    
-    link.download = `konvertiert_${originalName}.${ext}`;
-    link.href = dataUrl;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  }
-
-  formatFileSize(bytes: number): string {
-    if (bytes === 0) return '0 Bytes';
-    const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-  }
-}
+        function formatSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+    </script>
+</body>
+</html>
