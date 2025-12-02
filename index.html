@@ -25,6 +25,12 @@
             background: #e2e8f0;
             border-radius: 4px;
         }
+        /* Werbe-Platzhalter Muster */
+        .ad-pattern {
+            background-color: #f1f5f9;
+            background-image: radial-gradient(#cbd5e1 1px, transparent 1px);
+            background-size: 10px 10px;
+        }
     </style>
 </head>
 <body class="min-h-screen bg-slate-50 text-slate-800 font-sans selection:bg-blue-200">
@@ -36,13 +42,29 @@
                 <i data-lucide="refresh-cw" class="h-6 w-6"></i>
                 <span class="font-bold text-xl tracking-tight">PixelKonverter JS</span>
             </div>
-            <div class="text-sm text-slate-500 hidden sm:block">
-                Kein Upload • 100% Browser-basiert
+            
+            <div class="flex items-center gap-4">
+                <div class="text-sm text-slate-500 hidden md:block">
+                    Kein Upload • 100% Browser-basiert
+                </div>
+                <!-- MONETARISIERUNG: Spenden Button -->
+                <a href="#" onclick="alert('Hier Link zu PayPal oder BuyMeACoffee einfügen')" class="flex items-center gap-2 bg-yellow-100 hover:bg-yellow-200 text-yellow-800 px-3 py-1.5 rounded-full text-xs font-bold transition-colors border border-yellow-200">
+                    <i data-lucide="coffee" class="h-3 w-3"></i>
+                    <span>Kaffee spendieren</span>
+                </a>
             </div>
         </div>
     </nav>
 
     <main class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        
+        <!-- MONETARISIERUNG: Werbebanner Platzhalter (Leaderboard 728x90) -->
+        <!-- In der Realität würdest du hier den <script> Tag von AdSense einfügen -->
+        <div class="w-full h-24 mb-8 rounded-xl border-2 border-dashed border-slate-300 ad-pattern flex flex-col items-center justify-center text-slate-400">
+            <span class="text-xs font-bold uppercase tracking-widest mb-1">Werbung / Ad Space</span>
+            <span class="text-[10px]">Hier könnte ein Google AdSense Banner stehen</span>
+        </div>
+
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
             
             <!-- Linke Spalte: Upload & Vorschau -->
@@ -145,6 +167,11 @@
                             <i data-lucide="download" class="h-5 w-5"></i>
                             Bild herunterladen
                         </button>
+                        
+                        <!-- MONETARISIERUNG: Affiliate/Support Text -->
+                        <div class="text-center">
+                             <p class="text-[10px] text-slate-400">Gefällt dir das Tool? <a href="#" class="underline hover:text-blue-500">Kauf mir einen Kaffee</a> oder schau dir <a href="#" class="underline hover:text-blue-500">unsere Partner</a> an.</p>
+                        </div>
                     </div>
                 </div>
             </div>
