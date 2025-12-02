@@ -1,0 +1,16 @@
+[build]
+  # Der Standard-Build-Befehl für Angular
+  command = "ng build"
+  
+  # WICHTIG: Ersetze 'dein-projekt-name' mit dem Namen deines Ordners/Projekts.
+  # Bei modernen Angular-Versionen (v17+) liegt der Output meist in einem Unterordner 'browser'.
+  # Schau nach dem Build lokal in deinen 'dist'-Ordner, um den genauen Pfad zu sehen.
+  publish = "dist/pixelconverter/browser"
+
+# Diese Regel ist für Single Page Applications (SPAs) wie Angular essenziell.
+# Sie verhindert 404-Fehler beim Neuladen der Seite, indem alle Anfragen
+# an die index.html weitergeleitet werden.
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
